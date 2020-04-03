@@ -6,10 +6,8 @@
 #include<map>
 #include<set>
 #include<queue>
-#include<conio.h>
 #include<sstream>
 #include<fstream>
-#include<windows.h>
 #include<vector>
 #define IL inline
 #define re register
@@ -17,6 +15,8 @@
 using namespace std;
 
 const char stop='=';
+
+string now_name;
 
 struct sen{
 	string a,b;
@@ -56,12 +56,11 @@ ostream & operator<< (ostream &out,sen & obj)
     return out;
 }
 
-void gotoxy(int x, int y)
+bool judge()
 {
-	COORD pos;
-	pos.X =x;
-	pos.Y =y;
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),pos);
+	string t;
+	cin>>t;
+	return t=="y"||t=="yes"; 
 }
 
 int read(string name)
@@ -79,17 +78,15 @@ int read(string name)
 
 void show()
 {
-	
+	for(unsigned int i=0;i<lib.size();i++)
+	{
+		cout<<i+100000<<"\t"<<lib[i].a<<endl<<"\t"<<lib[i].b<<endl<<endl;
+	}
 } 
 
 void ready()
 {
 	ofstream rout("C:\\Users\\USER\\Downloads\\Compressed\\CQA-tuling\\酷Q Air\\词库\\now.wds",ios::out);
-}
-
-int find()
-{
-	
 }
 
 vector<string>table;
@@ -98,33 +95,54 @@ int turn(string str){
 	return -1;
 }
 
-string sep(string p,int num){
-	int j=0,post;
-	string str;
-	for(unsigned int i=1;i<p.size()&&j<num;i++)
-	{
-		if(p[i-1]!=' '&&p[i]==' ') j++,post=i;
+vector<string>stack;
+void dfs_non_empty(string,unsigned int);
+void dfs_empty(string str,unsigned int post)
+{
+	if(post==str.size()) return;
+	if(str[post]==' '||str[post]=='\t') dfs_empty(str,post+1);
+	else{
+		string t;
+		t.push_back(str[post]);
+		stack.push_back(t);
+		dfs_non_empty(str,post+1);
 	}
-	while(p[post]==' '||p[post]=='\t') ++post;
-	
-	for(unsigned int i=post+1;i<p.size();i++)
-	{
-		if(p[i]!=' ') str.push_back(p[i]);
-		else break;
+}
+
+void dfs_non_empty(string str,unsigned int post)
+{
+	if(post==str.size()) return;
+	if(str[post]!=' '&&str[post]!='\t'){
+		stack[stack.size()-1].push_back(str[post]);
+		dfs_non_empty(str,post+1);
 	}
-	return "EOF";
+	else{
+		dfs_empty(str,post+1);
+	}
+} 
+
+string sep(string p,unsigned int num){
+	stack.clear();
+	dfs_empty(p,0);
+	if(stack.size()<=num) return "EOF";
+	return stack[num];
 }
 
 int main()
 {
 	string str;
-	table={"help","load","open","cls","add","show","save"};
+	table={"help","load","open","cls","add","show","ready","save"};
 	while(true){
 		cout<<"User:";
 		getline(cin,str);
+		if(str==""){
+			cout<<"\b\b\b\b\b";
+			continue;
+		}
+		if(sep(str,0)=="EOF") continue;
 		switch(turn(sep(str,0))){
 			case -1:{
-				cout<<"Can't understand that\""<<str<<"\"    You can input \"help\" to check order\n";
+				cout<<"Can't understand that\""<<str<<"\"\nYou can input \"help\" to check order\n";
 				break;
 			}
 			case 0:{
@@ -133,11 +151,12 @@ int main()
 				break;
 			}
 			case 1:{
+				now_name=sep(str,1);
 				int res=read(sep(str,1));
 				if(res==-1) cout<<"读取失败\n";
 				else{
 					cout<<"读取到了"<<res<<"条语句，是否展示？(y/n)";
-					if(getch()=='y') show();
+					if(judge()) show();
 				}
 				break;
 			}
@@ -169,6 +188,14 @@ int main()
 					getline(cin,now.b);
 				}
 				lib.push_back(now);
+				break;
+			}
+			case 5:{
+				show();
+				break;
+			} 
+			case 6:{
+				ready();
 				break;
 			}
 		}
